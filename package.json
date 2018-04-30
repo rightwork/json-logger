@@ -1,7 +1,7 @@
 {
-  "name": "koa-logger",
+  "name": "json-logger",
   "description": "Logging middleware for koa",
-  "repository": "koajs/logger",
+  "repository": "rightwork/json-logger",
   "version": "1.3.1",
   "keywords": [
     "koa",

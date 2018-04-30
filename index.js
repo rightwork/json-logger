@@ -6,6 +6,7 @@ var Counter = require('passthrough-counter');
 var humanize = require('humanize-number');
 var bytes = require('bytes');
 var chalk = require('chalk');
+var util = require('util')
 
 /**
  * TTY check for dev format.
@@ -32,6 +33,11 @@ var colorCodes = {
   0: 'yellow'
 };
 
+var ip = function(webApp) {
+  var ip = webApp.req.headers['x-forwarded-for'] || webApp.req.connection.remoteAddress
+  return ip
+}
+
 /**
  * Development logger.
  */
@@ -40,11 +46,18 @@ function dev(opts) {
   return function *logger(next) {
     // request
     var start = new Date;
-    console.log('  ' + chalk.gray('<--')
+    var message = util.format('  ' + chalk.gray('<--')
       + ' ' + chalk.bold('%s')
       + ' ' + chalk.gray('%s'),
         this.method,
         this.originalUrl);
+    console.log({
+      message,
+      direction: 'incoming',
+      method: this.method,
+      url: this.originalUrl,
+      ip: ip(this)
+    });
 
     try {
       yield next;
@@ -113,7 +126,7 @@ function log(ctx, start, len, err, event) {
     : event === 'close' ? chalk.yellow('-x-')
     : chalk.gray('-->')
 
-  console.log('  ' + upstream
+  var message = util.format('  ' + upstream
     + ' ' + chalk.bold('%s')
     + ' ' + chalk.gray('%s')
     + ' ' + chalk[color]('%s')
@@ -122,8 +135,19 @@ function log(ctx, start, len, err, event) {
       ctx.method,
       ctx.originalUrl,
       status,
-      time(start),
+      humanTime(start),
       length);
+
+  console.log({
+    message,
+    method: ctx.method,
+    url: ctx.originalUrl,
+    status,
+    duration: time(start),
+    length: len, // use len which is original bytes, not with kb or mb suffix
+    direction: 'outgoing',
+    ip: ip(ctx)
+  })
 }
 
 /**
@@ -132,10 +156,15 @@ function log(ctx, start, len, err, event) {
  * in seconds otherwise.
  */
 
-function time(start) {
+function humanTime(start) {
   var delta = new Date - start;
   delta = delta < 10000
     ? delta + 'ms'
     : Math.round(delta / 1000) + 's';
-  return humanize(delta);
+  return delta;
+}
+
+function time(start) {
+  var delta = new Date - start;
+  return delta;
 }
