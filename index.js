@@ -51,7 +51,9 @@ function dev(opts) {
       + ' ' + chalk.gray('%s'),
         this.method,
         this.originalUrl);
-    console.log({
+
+    var loggerFunc = this.state.loggerFunc || console.log
+    loggerFunc({
       message,
       direction: 'incoming',
       method: this.method,
@@ -103,6 +105,8 @@ function dev(opts) {
  */
 
 function log(ctx, start, len, err, event) {
+  var loggerFunc = ctx.state.loggerFunc || console.log
+
   // get the status code of the response
   var status = err
     ? (err.status || 500)
