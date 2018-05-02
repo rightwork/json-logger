@@ -142,7 +142,7 @@ function log(ctx, start, len, err, event) {
       humanTime(start),
       length);
 
-  console.log({
+  loggerFunc({
     message,
     method: ctx.method,
     url: ctx.originalUrl,
